@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      MuartCam
+    </title>
+    <style>
+      body { font-family: &#39;Segoe UI&#39;, sans-serif; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .ust-panel { width: 100%; max-width: 400px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; position: relative; }
+        h1 { color: #bb86fc; margin: 0; }
+        #duyuru-alani { width: 100%; max-width: 400px; background: #3700b3; color: #fff; padding: 8px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 15px; display: none; }
+        .ayarlar-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #fff; }
+        #ayarlar-menu { display: none; position: absolute; right: 0; top: 40px; background: #2c2c2c; border: 1px solid #444; border-radius: 8px; padding: 10px; z-index: 100; box-shadow: 0px 4px 6px rgba(0,0,0,0.5); width: 160px; }
+        #ayarlar-menu.aktif { display: block; }
+        .menu-btn { color: #000; border: none; padding: 8px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-bottom: 5px; }
+        .sekmeler { display: flex; gap: 5px; margin-bottom: 20px; width: 100%; max-width: 400px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .sekmeler::-webkit-scrollbar { display: none; }
+        .sekme-btn { flex: 0 0 auto; padding: 10px 15px; background: #2c2c2c; color: #fff; border: 1px solid #444; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; white-space: nowrap; text-align: center; }
+        .sekme-btn.aktif { background: #6200ee; border-color: #bb86fc; }
+        #kamera-kutusu { position: relative; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; border: 3px solid #3700b3; background: #000; }
+        video { width: 100%; display: block; }
+        .btn { background: #6200ee; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 15px; transition: 0.3s; }
+        .btn:disabled { background: #555; }
+        .sayfa { display: none; width: 100%; max-width: 400px; }
+        .sayfa.aktif { display: block; }
+        .panel-alani { background: #1e1e1e; border-radius: 12px; padding: 15px; margin-top: 10px; }
+        h2 { margin-top: 0; font-size: 18px; color: #03dac6; }
+        li { background: #2c2c2c; padding: 10px; margin: 8px 0; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #03dac6; gap: 10px; }
+        .esya-sol { display: flex; align-items: center; gap: 12px; }
+        .esya-img { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; border: 1px solid #444; background: #000; display: flex; justify-content: center; align-items: center; font-size: 10px; text-align: center; color: #777; cursor: pointer; transition: 0.2s; }
+        .esya-img:hover { opacity: 0.7; border-color: #03dac6; }
+        .esya-detay font { display: block; font-size: 12px; color: #aaa; }
+        .esya-sag { display: flex; flex-direction: column; gap: 4px; }
+        .esya-sag-yatay { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+        .islem-btn { border: none; padding: 6px 10px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .cop-btn { background: #8d6e63; color: #fff; }
+        .sat-btn { background: #03dac6; color: #000; }
+        .fav-btn { background: #ffeb3b; color: #000; }
+        .sert-btn { background: #4caf50; color: #fff; }
+        .sil-btn { background: #cf6679; color: #000; }
+        #durum { margin-top: 10px; font-weight: bold; color: #03dac6; text-align: center; min-height: 20px; padding: 0 10px; }
+        #gold-kesesi { font-size: 18px; font-weight: bold; color: #ffd700; margin-bottom: 10px; }
+        .oyuncu-karti { cursor: pointer; transition: 0.2s; }
+        .oyuncu-karti:hover { background: #3a3a3a; }
+        .modal-arkaplan { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 200; justify-content: center; align-items: center; }
+        .modal-kutu { background: #1e1e1e; padding: 20px; border-radius: 12px; width: 90%; max-width: 350px; border: 2px solid #03dac6; max-height: 80vh; overflow-y: auto; }
+        .modal-kutu input { width: 90%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: none; background: #333; color: #fff; }
+        .kapat-btn { background: #cf6679; color: #000; border: none; padding: 8px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 15px; }
+        .sertifika-alan { background: #000; padding: 15px; border: 2px dashed #ffd700; border-radius: 10px; font-family: &#39;Courier New&#39;, Courier, monospace; font-size: 13px; color: #e0e0e0; }
+        .sertifika-alan span { color: #03dac6; font-weight: bold; }
+        #debug-paneli { display: none; background: #0a0a0a; border: 1px solid #cf6679; border-radius: 8px; padding: 10px; margin-top: 20px; width: 100%; max-width: 400px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 11px; text-align: left; }
+        #debug-paneli.aktif { display: block; }
+        .log-bilgi { color: #03dac6; margin-bottom: 3px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        .log-hata { color: #cf6679; margin-bottom: 3px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js">
+    </script>
+    <script src="https://apis.google.com/js/api.js">
+    </script>
+  </head>
+  <body>
+    <div class="ust-panel">
+      <h1>
+        MuartCam
+      </h1>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="kullanici-adi" style="display:none; font-weight:bold; font-size:14px;"></span>
+        <button class="ayarlar-btn" id="ayar-icon" style="display:none;" onclick="ayarlarToggle()">
+          ⚙️
+        </button>
+        <div id="ayarlar-menu">
+          <button id="admin-panel-btn" class="menu-btn" style="background: #bb86fc; display:none;" onclick="modalAc(&#39;modal-admin&#39;)">
+            👑 Admin Paneli
+          </button>
+          <button class="menu-btn" style="background: #03dac6; color:#000;" onclick="modalAc(&#39;modal-nasil-oynanir&#39;)">
+            📖 Nasıl Oynanır?
+          </button>
+          <button class="menu-btn" style="background: #ffeb3b;" onclick="debugToggle()">
+            Hata Ayıklama
+          </button>
+          <button class="menu-btn" style="background: #cf6679;" onclick="cikisYap()">
+            Çıkış Yap
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="duyuru-alani">
+    </div>
+    <div id="gold-kesesi">
+      💰 Cüzdan:
+      <span id="toplam-gold">      0
+</span>
+      TL
+    </div>
+    <div id="profil-alani">
+      <button id="login-btn" class="btn" onclick="googleGiris()">
+        Google ile Giriş Yap
+      </button>
+    </div>
+    <div class="sekmeler" id="sekme-kapsayici" style="display:none;">
+      <button id="sekme-kamera" class="sekme-btn aktif" onclick="sekmeDegistir(&#39;kamera&#39;)">
+        📷 Kamera
+      </button>
+      <button id="sekme-envanter" class="sekme-btn" onclick="sekmeDegistir(&#39;envanter&#39;)">
+        🎒 Çantam
+      </button>
+      <button id="sekme-koleksiyon" class="sekme-btn" onclick="sekmeDegistir(&#39;koleksiyon&#39;)">
+        💎 Koleksiyon
+      </button>
+      <button id="sekme-market" class="sekme-btn" onclick="sekmeDegistir(&#39;market&#39;)">
+        🛒 MuartSell
+      </button>
+      <button id="sekme-fav" class="sekme-btn" onclick="sekmeDegistir(&#39;fav&#39;)">
+        ⭐ Favoriler
+      </button>
+      <button id="sekme-kitaplik" class="sekme-btn" onclick="sekmeDegistir(&#39;kitaplik&#39;)">
+        📖 Kitaplık
+      </button>
+      <button id="sekme-siralama" class="sekme-btn" onclick="sekmeDegistir(&#39;siralama&#39;)">
+        🏆 Sıralama
+      </button>
+    </div>
+    <div id="sayfa-kamera" class="sayfa aktif">
+      <div id="kamera-kutusu">
+        <video id="video" autoplay="" playsinline="">
+        </video>
+      </div>
+      <button id="tarat-btn" class="btn" onclick="fotografCek()" disabled="">
+        Bağlanılıyor...
+      </button>
+      <div id="durum" style="font-size: 13px;">
+        Kamera taraması: -1000 TL
+      </div>
+    </div>
+    <div id="sayfa-envanter" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          🎒 Çantam
+        </h2>
+        <ul id="esya-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="sayfa-koleksiyon" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          💎 Koleksiyonum
+        </h2>
+        <ul id="koleksiyon-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="sayfa-market" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          🛒 MuartSell Pazar Yeri
+        </h2>
+        <ul id="market-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="sayfa-fav" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          ⭐ Favoriler
+        </h2>
+        <ul id="favori-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="sayfa-kitaplik" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          📖 Keşif Kitaplığı
+        </h2>
+        <ul id="kitaplik-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="sayfa-siralama" class="sayfa">
+      <div class="panel-alani">
+        <h2>
+          🏆 Koleksiyoner Sıralaması
+        </h2>
+        <ul id="siralama-listesi">
+        </ul>
+      </div>
+    </div>
+    <div id="modal-satis" class="modal-arkaplan">
+      <div class="modal-kutu">
+        <h2>
+          🛒 Satışa Koy
+        </h2>
+        <p style="font-size:12px; color:#aaa; margin-bottom:2px;">
+          Orijinal Değeri:
+          <span id="satis-orijinal-fiyat">          0
+</span>
+          TL
+        </p>
+        <p style="font-size:12px; color:#03dac6; font-weight:bold; margin-top:0; margin-bottom:15px;">
+          İzin Verilen Aralık:
+          <span id="satis-limitler"></span>
+        </p>
+        <input type="number" id="satis-input-fiyat" placeholder="Satış Fiyatı (TL)" />
+        <button class="islem-btn sat-btn" style="width:100%; padding:10px;" onclick="satisOnayla()">
+          MuartSell&#39;e Gönder
+        </button>
+        <button class="kapat-btn" onclick="modalKapat(&#39;modal-satis&#39;)">
+          İptal
+        </button>
+      </div>
+    </div>
+    <div id="modal-sertifika" class="modal-arkaplan">
+      <div class="modal-kutu">
+        <h2>
+          📜 Orijinallik Sertifikası
+        </h2>
+        <div id="sertifika-icerik" class="sertifika-alan">
+        </div>
+        <button class="kapat-btn" onclick="modalKapat(&#39;modal-sertifika&#39;)">
+          Kapat
+        </button>
+      </div>
+    </div>
+    <div id="modal-oyuncu" class="modal-arkaplan">
+      <div class="modal-kutu">
+        <h2 id="modal-oyuncu-baslik">
+          Oyuncu Vitrini
+        </h2>
+        <h3 style="color:#bb86fc; font-size:14px; margin-bottom:5px;">
+          💎 Koleksiyon
+        </h3>
+        <ul id="modal-oyuncu-koleksiyon" style="padding-left:0; margin:0 0 15px 0;">
+        </ul>
+        <h3 style="color:#ffeb3b; font-size:14px; margin-bottom:5px;">
+          ⭐ Favoriler
+        </h3>
+        <ul id="modal-oyuncu-favori" style="padding-left:0; margin:0;">
+        </ul>
+        <button class="kapat-btn" onclick="modalKapat(&#39;modal-oyuncu&#39;)">
+          Kapat
+        </button>
+      </div>
+    </div>
+    <div id="modal-nasil-oynanir" class="modal-arkaplan">
+      <div class="modal-kutu">
+        <h2>
+          📖 Nasıl Oynanır?
+        </h2>
+        <div id="nasil-oynanir-icerik" style="font-size:14px; white-space:pre-wrap; line-height:1.4; color:#e0e0e0; margin-bottom:15px;">
+        </div>
+        <button class="kapat-btn" onclick="modalKapat(&#39;modal-nasil-oynanir&#39;)">
+          Kapat
+        </button>
+      </div>
+    </div>
+    <div id="modal-admin" class="modal-arkaplan">
+      <div class="modal-kutu">
+        <h2>
+          👑 Admin Paneli
+        </h2>
+        <h3 style="color:#03dac6; font-size:14px;">
+          Duyuru Yayınla
+        </h3>
+        <input type="text" id="admin-duyuru-input" placeholder="Duyuru metni..." />
+        <button class="islem-btn sat-btn" style="width:100%; margin-bottom:15px;" onclick="adminDuyuruYap()">
+          Yayınla
+        </button>
+        <h3 style="color:#ffd700; font-size:14px;">
+          Nasıl Oynanır Rehberi
+        </h3>
+        <textarea id="admin-nasil-oynanir-input" placeholder="Rehber metnini buraya yazın..." style="width:90%; height:100px; padding:10px; margin-bottom:5px; border-radius:6px; border:none; background:#333; color:#fff; font-family:sans-serif; resize:vertical;">
+        </textarea>
+        <button class="islem-btn sat-btn" style="width:100%; margin-bottom:15px; background:#ffd700; color:#000;" onclick="adminNasilOynanirKaydet()">
+          Kılavuzu Güncelle
+        </button>
+        <h3 style="color:#cf6679; font-size:14px;">
+          Kullanıcı Sil
+        </h3>
+        <input type="text" id="admin-sil-input" placeholder="Tam kullanıcı adını yaz..." />
+        <button class="islem-btn" style="background:#cf6679; color:#000; width:100%; font-weight:bold;" onclick="adminHesapSil()">
+          Hesabı Yok Et
+        </button>
+        <button class="kapat-btn" onclick="modalKapat(&#39;modal-admin&#39;)">
+          Kapat
+        </button>
+      </div>
+    </div>
+    <div id="modal-gorsel" class="modal-arkaplan" onclick="modalKapat(&#39;modal-gorsel&#39;)">
+      <img id="buyuk-gorsel" src="" style="max-width: 90%; max-height: 90%; border-radius: 12px; border: 3px solid #03dac6; box-shadow: 0 0 20px rgba(3, 218, 198, 0.3);" />
+    </div>
+    <div id="debug-paneli">
+    </div>
+    <canvas id="canvas" style="display:none;">
+    </canvas>
+    <script>
+      const debugPaneli = document.getElementById(&#39;debug-paneli&#39;);
+        function sistemeYazdir(mesaj, tip) {
+            const div = document.createElement(&#39;div&#39;);
+            div.className = tip === &#39;hata&#39; ? &#39;log-hata&#39; : &#39;log-bilgi&#39;;
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${mesaj}`;
+            debugPaneli.prepend(div);
+        }
+        const eskiLog = console.log; const eskiHata = console.error;
+        console.log = function(...args) { eskiLog(...args); sistemeYazdir(args.join(&#39; &#39;), &#39;bilgi&#39;); };
+        console.error = function(...args) { eskiHata(...args); sistemeYazdir(args.join(&#39; &#39;), &#39;hata&#39;); };
+        window.onerror = function(msg, url, line) { sistemeYazdir(`${msg} (Satır: ${line})`, &#39;hata&#39;); return false; };
+
+        const firebaseConfig = {
+            apiKey: &#34;AIzaSyA2C2AVx3qOTgYX1cAezNPBEms2n3f1DcA&#34;,
+            authDomain: &#34;muartcam.firebaseapp.com&#34;,
+            databaseURL: &#34;https://muartcam-default-rtdb.firebaseio.com&#34;,
+            projectId: &#34;muartcam&#34;,
+            storageBucket: &#34;muartcam.firebasestorage.app&#34;,
+            messagingSenderId: &#34;593290787083&#34;,
+            appId: &#34;1:593290787083:web:1d3b28cf902c7dd07dca0e&#34;
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const GROQ_API_KEY = &#34;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&#34;;
+
+        let aktifKullanici = null;
+        let aktifKullaniciAdi = &#34;&#34;;
+        let cüzdan = 0;
+        let favoriSayisi = 0;
+        let inMemoryPhotos = {};
+        let kaliciKitaplikIsimleri = [];
+        let pazarSecilenId = null;
+        let pazarSecilenEsya = null;
+        let pazarKaynak = &#34;&#34;;
+        let pazarMinFiyat = 0;
+        let pazarMaxFiyat = 0;
+
+        const video = document.getElementById(&#39;video&#39;);
+        const canvas = document.getElementById(&#39;canvas&#39;);
+        const durum = document.getElementById(&#39;durum&#39;);
+        const taratBtn = document.getElementById(&#39;tarat-btn&#39;);
+
+        gapi.load(&#39;client&#39;, () =&gt; { console.log(&#34;GAPI Client yüklendi.&#34;); });
+        firebase.auth().onAuthStateChanged((user) =&gt; {
+            if (user) {
+                aktifKullanici = user;
+                const savedToken = localStorage.getItem(&#39;gapi_token&#39;);
+                if(savedToken) gapi.client.setToken({ access_token: savedToken });
+
+                if (user.email === &#39;06abb755@gmail.com&#39;) {
+                    document.getElementById(&#39;admin-panel-btn&#39;).style.display = &#39;block&#39;;
+                }
+
+                isimKaydetVeNumaralandir(user).then((isim) =&gt; {
+                    aktifKullaniciAdi = isim;
+                    gunlukOdulKontrol(user.uid); // GÜNLÜK ÖDÜL KONTROLÜ
+                    arayuzuAktifEt(isim);
+                    veritabaniDinle();
+                });
+            } else {
+                durum.innerText = &#34;Lütfen giriş yapın.&#34;;
+                taratBtn.innerText = &#34;Giriş Yapmalısın!&#34;;
+            }
+        });
+
+        async function isimKaydetVeNumaralandir(user) {
+            let snap = await db.ref(&#39;users/&#39; + user.uid + &#39;/adi&#39;).once(&#39;value&#39;);
+            if (snap.exists()) return snap.val();
+
+            let tumKullanicilar = await db.ref(&#39;users&#39;).once(&#39;value&#39;);
+            let sayac = 1;
+            let temelIsim = user.displayName;
+            tumKullanicilar.forEach(c =&gt; {
+                let d = c.val();
+                if (c.key !== user.uid &amp;&amp; d.adi &amp;&amp; d.adi.startsWith(temelIsim)) sayac++;
+            });
+            let finalIsim = sayac &gt; 1 ? `${temelIsim} #${sayac}` : temelIsim;
+            await db.ref(&#39;users/&#39; + user.uid + &#39;/adi&#39;).set(finalIsim);
+            return finalIsim;
+        }
+
+        async function gunlukOdulKontrol(uid) {
+            const bugun = new Date().toDateString();
+            const snap = await db.ref(`users/${uid}/sonOdulTarihi`).once(&#39;value&#39;);
+            if (snap.val() !== bugun) {
+                await db.ref(`users/${uid}/cuzdan`).transaction(mevcut =&gt; (mevcut || 0) + 5000);
+                await db.ref(`users/${uid}/sonOdulTarihi`).set(bugun);
+                alert(&#34;🎉 Günlük Giriş Ödülü: Cüzdanına 5000 TL eklendi!&#34;);
+            }
+        }
+
+        function ayarlarToggle() { document.getElementById(&#39;ayarlar-menu&#39;).classList.toggle(&#39;aktif&#39;); }
+        function debugToggle() { debugPaneli.classList.toggle(&#39;aktif&#39;); ayarlarToggle(); }
+        function cikisYap() { localStorage.removeItem(&#39;gapi_token&#39;); firebase.auth().signOut().then(() =&gt; { location.reload(); }); }
+        function modalAc(id) { document.getElementById(id).style.display = &#39;flex&#39;; if(id===&#39;modal-admin&#39;) ayarlarToggle(); }
+        function modalKapat(id) { document.getElementById(id).style.display = &#39;none&#39;; }
+        
+        function gorselBuyut(src) {
+            if(!src || src.includes(&#39;Silindi&#39;) || src.includes(&#39;Foto Yok&#39;)) return;
+            document.getElementById(&#39;buyuk-gorsel&#39;).src = src;
+            modalAc(&#39;modal-gorsel&#39;);
+        }
+
+        function googleGiris() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope(&#39;https://www.googleapis.com/auth/drive.file&#39;);
+            firebase.auth().signInWithPopup(provider).then((result) =&gt; {
+                localStorage.setItem(&#39;gapi_token&#39;, result.credential.accessToken);
+                gapi.client.setToken({ access_token: result.credential.accessToken });
+                location.reload();
+            }).catch(err =&gt; alert(&#34;Giriş Hatası: &#34; + err.message));
+        }
+
+        function arayuzuAktifEt(isim) {
+            document.getElementById(&#39;login-btn&#39;).style.display = &#39;none&#39;;
+            document.getElementById(&#39;sekme-kapsayici&#39;).style.display = &#39;flex&#39;;
+            document.getElementById(&#39;kullanici-adi&#39;).style.display = &#39;block&#39;;
+            document.getElementById(&#39;kullanici-adi&#39;).innerText = isim;
+            document.getElementById(&#39;ayar-icon&#39;).style.display = &#39;block&#39;;
+            taratBtn.disabled = false; taratBtn.innerText = &#34;Nesneyi Tarat!&#34;;
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: &#39;environment&#39; } })
+                .then(stream =&gt; { video.srcObject = stream; })
+                .catch(err =&gt; { durum.innerText = &#34;Kamera açılamadı!&#34;; });
+        }
+
+        function veritabaniDinle() {
+            db.ref(&#39;duyurular/aktif&#39;).on(&#39;value&#39;, s =&gt; {
+                const dalan = document.getElementById(&#39;duyuru-alani&#39;);
+                if(s.val()) { dalan.style.display = &#39;block&#39;; dalan.innerText = &#34;📢 DUYURU: &#34; + s.val(); }
+                else { dalan.style.display = &#39;none&#39;; }
+            });
+
+            db.ref(&#39;ayarlar/nasilOynanir&#39;).on(&#39;value&#39;, s =&gt; {
+                const metin = s.val() || &#34;Henüz rehber eklenmedi.&#34;;
+                document.getElementById(&#39;nasil-oynanir-icerik&#39;).innerText = metin;
+                const adminInp = document.getElementById(&#39;admin-nasil-oynanir-input&#39;);
+                if(adminInp) adminInp.value = s.val() || &#34;&#34;;
+            });
+
+            db.ref(&#39;users/&#39; + aktifKullanici.uid).on(&#39;value&#39;, snapshot =&gt; {
+                const data = snapshot.val() || {};
+                cüzdan = data.cuzdan || 0;
+                document.getElementById(&#39;toplam-gold&#39;).innerText = cüzdan;
+                kaliciKitaplikIsimleri = Object.values(data.kitaplik || {}).map(e =&gt; e.urun.toLowerCase().trim());
+                favoriSayisi = Object.keys(data.favoriler || {}).length;
+                guncelleEnvanterUI(data.envanter || {});
+                guncelleKoleksiyonUI(data.koleksiyon || {});
+                guncelleFavoriUI(data.favoriler || {});
+                guncelleKitaplikUI(data.kitaplik || {});
+            });
+
+            db.ref(&#39;market&#39;).on(&#39;value&#39;, snap =&gt; {
+                guncelleMarketUI(snap.val() || {});
+            });
+        }
+
+        async function fotografCek() {
+            if (cüzdan &lt; 1000) {
+                alert(&#34;Fotoğraf çekmek için cüzdanında en az 1000 TL bulunmalıdır!&#34;);
+                return;
+            }
+
+            taratBtn.disabled = true; durum.innerText = &#34;Yapay zeka analiz ediyor... (1000 TL kesildi)&#34;;
+            db.ref(`users/${aktifKullanici.uid}/cuzdan`).set(cüzdan - 1000);
+
+            const context = canvas.getContext(&#39;2d&#39;);
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const base64Image = canvas.toDataURL(&#39;image/jpeg&#39;);
+
+            try {
+                const response = await fetch(&#39;https://api.groq.com/openai/v1/chat/completions&#39;, {
+                    method: &#39;POST&#39;,
+                    headers: { &#39;Authorization&#39;: `Bearer ${GROQ_API_KEY}`, &#39;Content-Type&#39;: &#39;application/json&#39; },
+                    body: JSON.stringify({
+                        model: &#34;meta-llama/llama-4-scout-17b-16e-instruct&#34;,
+                        messages: [{ role: &#34;user&#34;, content: [
+                                { type: &#34;text&#34;, text: &#34;Identify the main object in the image. Provide ONLY its most basic, general root name in Turkish without any adjectives or colors (e.g., output &#39;Kulaklık&#39; instead of &#39;Kırmızı kulaklık&#39;, &#39;El&#39; instead of &#39;Hand&#39;). Give a realistic price in TL. Respond ONLY in strict JSON format: { \&#34;urun\&#34;: \&#34;Basit Türkçe İsim\&#34;, \&#34;fiyat\&#34;: 150 }&#34; },
+                                { type: &#34;image_url&#34;, image_url: { url: base64Image } }
+                            ]}],
+                        response_format: { type: &#34;json_object&#34; }
+                    })
+                });
+                const data = await response.json();
+                const obj = JSON.parse(data.choices[0].message.content.trim());
+                if (kaliciKitaplikIsimleri.includes(obj.urun.toLowerCase().trim())) {
+                    durum.innerHTML = `&lt;span style=&#34;color:#cf6679;&#34;&gt;🛑 Engellendi: &#34;${obj.urun}&#34; zaten kütüphanede! Para iade edildi.&lt;/span&gt;`;
+                    db.ref(`users/${aktifKullanici.uid}/cuzdan`).set(cüzdan + 1000);
+                    return;
+                }
+                const id = &#34;esya_&#34; + Date.now();
+                inMemoryPhotos[id] = base64Image;
+                
+                let esyaObj = {
+                    urun: obj.urun, fiyat: obj.fiyat, orijinalFiyat: obj.fiyat,
+                    ilkSahip: aktifKullaniciAdi, suankiSahip: aktifKullaniciAdi, tarih: Date.now()
+                };
+
+                db.ref(`users/${aktifKullanici.uid}/envanter/${id}`).set(esyaObj);
+                db.ref(`users/${aktifKullanici.uid}/kitaplik/${id}`).set({ urun: obj.urun, fiyat: obj.fiyat, driveImg: &#34;&#34; });
+                durum.innerText = `🔍 Yeni Keşif: ${obj.urun} eklendi!`;
+            } catch (error) { 
+                durum.innerText = &#34;Tarama başarısız oldu. Para iade edildi.&#34;;
+                db.ref(`users/${aktifKullanici.uid}/cuzdan`).set(cüzdan + 1000);
+            } finally { taratBtn.disabled = false; }
+        }
+
+        function sertifikaGoster(esyaStr) {
+            const e = JSON.parse(decodeURIComponent(esyaStr));
+            const tarihStr = new Date(e.tarih).toLocaleString(&#39;tr-TR&#39;);
+            const cop = Math.floor(e.fiyat * 0.66);
+            let html = `&lt;span&gt;Nesne İsmi:&lt;/span&gt; ${e.urun}&lt;br&gt;
+                        &lt;span&gt;Çekilme Tarihi:&lt;/span&gt; ${tarihStr}&lt;br&gt;
+                        &lt;span&gt;İlk Çeken (Kâşif):&lt;/span&gt; ${e.ilkSahip}&lt;br&gt;
+                        &lt;span&gt;Şuanki Sahibi:&lt;/span&gt; ${e.suankiSahip}&lt;br&gt;
+                        &lt;span&gt;Orijinal Değeri:&lt;/span&gt; ${e.orijinalFiyat} TL&lt;br&gt;`;
+            if (e.fiyat !== e.orijinalFiyat) html += `&lt;span&gt;Satın Alınma Fiyatı:&lt;/span&gt; ${e.fiyat} TL&lt;br&gt;`;
+            html += `&lt;span&gt;Geri Dönüşüm (Çöp) Değeri:&lt;/span&gt; ${cop} TL`;
+            document.getElementById(&#39;sertifika-icerik&#39;).innerHTML = html;
+            modalAc(&#39;modal-sertifika&#39;);
+        }
+
+        function guncelleEnvanterUI(esyaObjesi) {
+            const liste = document.getElementById(&#39;esya-listesi&#39;); liste.innerHTML = &#34;&#34;;
+            const esyalar = Object.entries(esyaObjesi).sort((a,b) =&gt; b[1].tarih - a[1].tarih);
+            if(esyalar.length === 0) liste.innerHTML = &#34;&lt;p style=&#39;color:#777; text-align:center;&#39;&gt;Çanta boş.&lt;/p&gt;&#34;;
+            esyalar.forEach(([id, esya]) =&gt; {
+                const imgSource = inMemoryPhotos[id] ? `&lt;img src=&#34;${inMemoryPhotos[id]}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34;&gt;` : `&lt;div class=&#34;esya-img&#34;&gt;Silindi&lt;br&gt;(RAM)&lt;/div&gt;`;
+                const copDegeri = Math.floor(esya.fiyat * 0.66);
+                const safeEsya = encodeURIComponent(JSON.stringify(esya));
+                liste.innerHTML += `
+                    &lt;li&gt;
+                        &lt;div class=&#34;esya-sol&#34;&gt;
+                            ${imgSource}
+                            &lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;${esya.urun}&lt;/strong&gt;&lt;font&gt;${esya.fiyat} TL&lt;/font&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&#34;esya-sag&#34;&gt;
+                            &lt;div class=&#34;esya-sag-yatay&#34;&gt;
+                                &lt;button class=&#34;islem-btn cop-btn&#34; onclick=&#34;copAt(&#39;${id}&#39;, ${copDegeri}, &#39;envanter&#39;)&#34;&gt;🗑️ Çöp (${copDegeri})&lt;/button&gt;
+                                ${inMemoryPhotos[id] ? `&lt;button class=&#34;islem-btn sat-btn&#34; onclick=&#34;pazarModalAc(&#39;${id}&#39;, &#39;${safeEsya}&#39;, &#39;envanter&#39;)&#34;&gt;Sat&lt;/button&gt;` : `&lt;button class=&#34;islem-btn&#34; disabled style=&#34;background:#444;&#34;&gt;Sat&lt;/button&gt;`}
+                            &lt;/div&gt;
+                            ${inMemoryPhotos[id] ? `&lt;button class=&#34;islem-btn fav-btn&#34; id=&#34;btn-${id}&#34; onclick=&#34;driveaYolla(&#39;${id}&#39;, &#39;${safeEsya}&#39;)&#34; style=&#34;width:100%; margin-top:4px;&#34;&gt;⭐ Favoriye Ekle&lt;/button&gt;` : ``}
+                        &lt;/div&gt;
+                    &lt;/li&gt;
+                `;
+            });
+        }
+
+        function guncelleKoleksiyonUI(kolObjesi) {
+            const liste = document.getElementById(&#39;koleksiyon-listesi&#39;); liste.innerHTML = &#34;&#34;;
+            const esyalar = Object.entries(kolObjesi);
+            if(esyalar.length === 0) liste.innerHTML = &#34;&lt;p style=&#39;color:#777; text-align:center;&#39;&gt;Koleksiyon boş.&lt;/p&gt;&#34;;
+            esyalar.forEach(([id, esya]) =&gt; {
+                const copDegeri = Math.floor(esya.fiyat * 0.66);
+                const safeEsya = encodeURIComponent(JSON.stringify(esya));
+                liste.innerHTML += `
+                    &lt;li&gt;
+                        &lt;div class=&#34;esya-sol&#34;&gt;
+                            &lt;img src=&#34;${esya.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; referrerpolicy=&#34;no-referrer&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;
+                            &lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;💎 ${esya.urun}&lt;/strong&gt;&lt;font&gt;Değer: ${esya.fiyat} TL&lt;/font&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&#34;esya-sag&#34;&gt;
+                            &lt;div class=&#34;esya-sag-yatay&#34;&gt;
+                                &lt;button class=&#34;islem-btn sert-btn&#34; onclick=&#34;sertifikaGoster(&#39;${safeEsya}&#39;)&#34;&gt;📜&lt;/button&gt;
+                                &lt;button class=&#34;islem-btn cop-btn&#34; onclick=&#34;copAt(&#39;${id}&#39;, ${copDegeri}, &#39;koleksiyon&#39;)&#34;&gt;🗑️ Çöp (${copDegeri})&lt;/button&gt;
+                                &lt;button class=&#34;islem-btn sat-btn&#34; onclick=&#34;pazarModalAc(&#39;${id}&#39;, &#39;${safeEsya}&#39;, &#39;koleksiyon&#39;)&#34;&gt;Sat&lt;/button&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/li&gt;
+                `;
+            });
+        }
+
+        function guncelleMarketUI(marketObj) {
+            const liste = document.getElementById(&#39;market-listesi&#39;); liste.innerHTML = &#34;&#34;;
+            const esyalar = Object.entries(marketObj);
+            if(esyalar.length === 0) liste.innerHTML = &#34;&lt;p style=&#39;color:#777; text-align:center;&#39;&gt;Pazar şu an boş.&lt;/p&gt;&#34;;
+            esyalar.forEach(([id, esya]) =&gt; {
+                const safeEsya = encodeURIComponent(JSON.stringify(esya));
+                let butonHtml = &#34;&#34;;
+                let saticiIsmi = esya.saticiAdi;
+                
+                if (esya.saticiUid === aktifKullanici.uid) {
+                    saticiIsmi = &#34;Sen&#34;;
+                    butonHtml = `&lt;button class=&#34;islem-btn sil-btn&#34; onclick=&#34;pazardanCek(&#39;${id}&#39;, &#39;${safeEsya}&#39;)&#34;&gt;İptal Et&lt;/button&gt;`;
+                } else {
+                    butonHtml = `&lt;button class=&#34;islem-btn sat-btn&#34; style=&#34;background:#bb86fc; color:#fff;&#34; onclick=&#34;satinAl(&#39;${id}&#39;, &#39;${safeEsya}&#39;)&#34;&gt;Al (${esya.fiyat} TL)&lt;/button&gt;`;
+                }
+
+                liste.innerHTML += `
+                    &lt;li&gt;
+                        &lt;div class=&#34;esya-sol&#34;&gt;
+                            &lt;img src=&#34;${esya.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; referrerpolicy=&#34;no-referrer&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;
+                            &lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;🛒 ${esya.urun}&lt;/strong&gt;&lt;font&gt;Satıcı: ${saticiIsmi}&lt;/font&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&#34;esya-sag&#34;&gt;
+                             &lt;div class=&#34;esya-sag-yatay&#34;&gt;
+                                &lt;button class=&#34;islem-btn sert-btn&#34; onclick=&#34;sertifikaGoster(&#39;${safeEsya}&#39;)&#34;&gt;📜&lt;/button&gt;
+                                ${butonHtml}
+                             &lt;/div&gt;
+                        &lt;/div&gt;
+                    &lt;/li&gt;
+                `;
+            });
+        }
+
+        function guncelleFavoriUI(favObjesi) {
+            const liste = document.getElementById(&#39;favori-listesi&#39;); liste.innerHTML = &#34;&#34;;
+            const esyalar = Object.entries(favObjesi);
+            if(esyalar.length === 0) liste.innerHTML = &#34;&lt;p style=&#39;color:#777; text-align:center;&#39;&gt;Favori yok.&lt;/p&gt;&#34;;
+            esyalar.forEach(([id, esya]) =&gt; {
+                const safeEsya = encodeURIComponent(JSON.stringify(esya));
+                liste.innerHTML += `
+                    &lt;li&gt;
+                        &lt;div class=&#34;esya-sol&#34;&gt;
+                            &lt;img src=&#34;${esya.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; referrerpolicy=&#34;no-referrer&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;
+                            &lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;⭐ ${esya.urun}&lt;/strong&gt;&lt;font&gt;${esya.fiyat} TL&lt;/font&gt;&lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class=&#34;esya-sag-yatay&#34;&gt;
+                            &lt;button class=&#34;islem-btn sert-btn&#34; onclick=&#34;sertifikaGoster(&#39;${safeEsya}&#39;)&#34;&gt;📜&lt;/button&gt;
+                            &lt;button class=&#34;islem-btn sil-btn&#34; onclick=&#34;favoridenCikar(&#39;${id}&#39;, &#39;${esya.driveFileId}&#39;, &#39;${safeEsya}&#39;)&#34;&gt;Geri Çıkar&lt;/button&gt;
+                        &lt;/div&gt;
+                    &lt;/li&gt;
+                `;
+            });
+        }
+
+        function guncelleKitaplikUI(kitaplikObjesi) {
+            const liste = document.getElementById(&#39;kitaplik-listesi&#39;); liste.innerHTML = &#34;&#34;;
+            const esyalar = Object.values(kitaplikObjesi).sort((a,b) =&gt; b.fiyat - a.fiyat);
+            if(esyalar.length === 0) { liste.innerHTML = &#34;&lt;p style=&#39;color:#777; text-align:center;&#39;&gt;Kitaplık boş.&lt;/p&gt;&#34;; return; }
+            esyalar.forEach(esya =&gt; {
+                const imgTag = esya.driveImg ? `&lt;img src=&#34;${esya.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; referrerpolicy=&#34;no-referrer&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;` : `&lt;div class=&#34;esya-img&#34; style=&#34;color:#aaa;&#34;&gt;Foto Yok&lt;/div&gt;`;
+                liste.innerHTML += `&lt;li&gt;&lt;div class=&#34;esya-sol&#34;&gt;${imgTag}&lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;📖 ${esya.urun}&lt;/strong&gt;&lt;font&gt;İlk Değer: ${esya.fiyat} TL&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;&lt;/li&gt;`;
+            });
+        }
+
+        function copAt(id, kazanc, kaynak) {
+            if(!confirm(`Bu nesneyi çöpe atıp ${kazanc} TL kazanmak istediğine emin misin?`)) return;
+            db.ref(`users/${aktifKullanici.uid}/cuzdan`).set(cüzdan + kazanc);
+            db.ref(`users/${aktifKullanici.uid}/${kaynak}/${id}`).remove();
+            if(kaynak === &#39;envanter&#39; &amp;&amp; inMemoryPhotos[id]) delete inMemoryPhotos[id];
+        }
+
+        function pazarModalAc(id, esyaStr, kaynak) {
+            pazarSecilenEsya = JSON.parse(decodeURIComponent(esyaStr));
+            pazarSecilenId = id;
+            pazarKaynak = kaynak;
+            document.getElementById(&#39;satis-orijinal-fiyat&#39;).innerText = pazarSecilenEsya.orijinalFiyat;
+            
+            // FİYAT LİMİT KONTROLÜ
+            if (kaynak === &#39;envanter&#39;) {
+                pazarMinFiyat = pazarSecilenEsya.orijinalFiyat;
+                pazarMaxFiyat = pazarSecilenEsya.orijinalFiyat * 100;
+            } else if (kaynak === &#39;koleksiyon&#39;) {
+                pazarMinFiyat = pazarSecilenEsya.fiyat;
+                pazarMaxFiyat = pazarSecilenEsya.fiyat * 5;
+            }
+
+            document.getElementById(&#39;satis-limitler&#39;).innerText = `${pazarMinFiyat} TL ile ${pazarMaxFiyat} TL arası`;
+            document.getElementById(&#39;satis-input-fiyat&#39;).value = pazarMinFiyat;
+            
+            modalAc(&#39;modal-satis&#39;);
+        }
+
+        async function satisOnayla() {
+            let inputFiyat = parseInt(document.getElementById(&#39;satis-input-fiyat&#39;).value);
+            
+            if(isNaN(inputFiyat) || inputFiyat &lt; pazarMinFiyat || inputFiyat &gt; pazarMaxFiyat) {
+                alert(`Fiyat en az ${pazarMinFiyat} TL, en fazla ${pazarMaxFiyat} TL olabilir.`); return;
+            }
+            
+            pazarSecilenEsya.fiyat = inputFiyat;
+            pazarSecilenEsya.saticiUid = aktifKullanici.uid;
+            pazarSecilenEsya.saticiAdi = aktifKullaniciAdi;
+
+            document.querySelector(&#39;#modal-satis .sat-btn&#39;).innerText = &#34;Yükleniyor...&#34;;
+            
+            if(pazarKaynak === &#39;envanter&#39;) {
+                const base64Data = inMemoryPhotos[pazarSecilenId];
+                if(!base64Data) { alert(&#34;RAM Foto silinmiş!&#34;); modalKapat(&#39;modal-satis&#39;); return; }
+                const driveData = await gizliDriveYukle(pazarSecilenEsya.urun, base64Data);
+                if(driveData) {
+                    pazarSecilenEsya.driveFileId = driveData.id;
+                    pazarSecilenEsya.driveImg = driveData.url;
+                    db.ref(`users/${aktifKullanici.uid}/kitaplik/${pazarSecilenId}/driveImg`).set(driveData.url);
+                } else { alert(&#34;Drive yükleme hatası.&#34;); modalKapat(&#39;modal-satis&#39;); return; }
+            }
+            
+            await db.ref(`market/${pazarSecilenId}`).set(pazarSecilenEsya);
+            await db.ref(`users/${aktifKullanici.uid}/${pazarKaynak}/${pazarSecilenId}`).remove();
+            if(pazarKaynak === &#39;envanter&#39; &amp;&amp; inMemoryPhotos[pazarSecilenId]) delete inMemoryPhotos[pazarSecilenId];
+            
+            document.querySelector(&#39;#modal-satis .sat-btn&#39;).innerText = &#34;MuartSell&#39;e Gönder&#34;;
+            modalKapat(&#39;modal-satis&#39;);
+            alert(&#34;Eşya MuartSell&#39;de satışa çıktı!&#34;);
+            sekmeDegistir(&#39;market&#39;);
+        }
+
+        async function satinAl(id, esyaStr) {
+            const esya = JSON.parse(decodeURIComponent(esyaStr));
+            if(cüzdan &lt; esya.fiyat) { alert(&#34;Paran yetersiz!&#34;); return; }
+            if(!confirm(`${esya.urun} nesnesini ${esya.fiyat} TL&#39;ye almak istiyor musun?`)) return;
+
+            db.ref(`users/${aktifKullanici.uid}/cuzdan`).set(cüzdan - esya.fiyat);
+            db.ref(`users/${esya.saticiUid}/cuzdan`).transaction(v =&gt; (v || 0) + esya.fiyat);
+            
+            esya.suankiSahip = aktifKullaniciAdi;
+            delete esya.saticiUid; delete esya.saticiAdi;
+            db.ref(`users/${aktifKullanici.uid}/koleksiyon/${id}`).set(esya);
+            db.ref(`market/${id}`).remove();
+            
+            alert(&#34;Satın alma başarılı! Nesne Koleksiyonuna eklendi.&#34;);
+        }
+
+        async function pazardanCek(id, esyaStr) {
+            if(!confirm(&#34;Bu ürünü pazardan geri çekmek istediğine emin misin?&#34;)) return;
+            const esya = JSON.parse(decodeURIComponent(esyaStr));
+            delete esya.saticiUid; delete esya.saticiAdi;
+            await db.ref(`users/${aktifKullanici.uid}/koleksiyon/${id}`).set(esya);
+            await db.ref(`market/${id}`).remove();
+            alert(&#34;Ürün pazardan geri çekildi ve Koleksiyonunuza eklendi.&#34;);
+        }
+
+        async function muartCamKlasorBulVeyaOlustur() {
+            let res = await gapi.client.request({ path: &#39;/drive/v3/files&#39;, method: &#39;GET&#39;, params: { q: &#34;mimeType=&#39;application/vnd.google-apps.folder&#39; and name=&#39;MuartCam&#39; and trashed=false&#34; } });
+            if(res.result.files &amp;&amp; res.result.files.length &gt; 0) return res.result.files[0].id;
+            let createRes = await gapi.client.request({ path: &#39;/drive/v3/files&#39;, method: &#39;POST&#39;, body: { name: &#39;MuartCam&#39;, mimeType: &#39;application/vnd.google-apps.folder&#39; } });
+            return createRes.result.id;
+        }
+
+        async function gizliDriveYukle(urun, base64Data) {
+            try {
+                const klasorId = await muartCamKlasorBulVeyaOlustur();
+                const boundary = &#39;foo_bar_baz&#39;;
+                const metadata = { name: `MuartCam_${urun.replace(/\s+/g, &#39;_&#39;)}.jpg`, mimeType: &#39;image/jpeg&#39;, parents: [klasorId] };
+                const pureBase64 = base64Data.split(&#39;,&#39;)[1];
+                const multipartBody = `\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: image/jpeg\r\nContent-Transfer-Encoding: base64\r\n\r\n${pureBase64}\r\n--${boundary}--`;
+                const driveRes = await gapi.client.request({ path: &#39;/upload/drive/v3/files&#39;, method: &#39;POST&#39;, params: { uploadType: &#39;multipart&#39;, fields: &#39;id&#39; }, headers: { &#39;Content-Type&#39;: `multipart/form-data; boundary=${boundary}` }, body: multipartBody });
+                
+                if (driveRes.result.id) {
+                    await gapi.client.request({ path: `/drive/v3/files/${driveRes.result.id}/permissions`, method: &#39;POST&#39;, body: { role: &#39;reader&#39;, type: &#39;anyone&#39; } });
+                    return { id: driveRes.result.id, url: `https://drive.google.com/thumbnail?id=${driveRes.result.id}&amp;sz=w800` };
+                }
+            } catch (e) { console.error(e); return null; }
+        }
+
+        async function driveDosyaIndir(fileId) {
+            try {
+                const token = gapi.client.getToken().access_token;
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: { &#39;Authorization&#39;: `Bearer ${token}` }
+                });
+                const blob = await res.blob();
+                return new Promise((resolve, reject) =&gt; {
+                    const reader = new FileReader();
+                    reader.onloadend = () =&gt; resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) { console.error(&#34;Drive indirme hatası:&#34;, e); return null; }
+        }
+
+        async function driveaYolla(id, esyaStr) {
+            if (favoriSayisi &gt;= 5) {
+                alert(&#34;Favori sınırına ulaştın! En fazla 5 eşyayı favorileyebilirsin.&#34;);
+                return;
+            }
+            
+            const btn = document.getElementById(`btn-${id}`); btn.disabled = true; btn.innerText = &#34;⏳&#34;;
+            const esya = JSON.parse(decodeURIComponent(esyaStr));
+            const base64Data = inMemoryPhotos[id];
+            const driveData = await gizliDriveYukle(esya.urun, base64Data);
+            
+            if(driveData) {
+                esya.driveFileId = driveData.id; esya.driveImg = driveData.url;
+                db.ref(`users/${aktifKullanici.uid}/favoriler/${id}`).set(esya);
+                db.ref(`users/${aktifKullanici.uid}/kitaplik/${id}/driveImg`).set(driveData.url);
+                db.ref(`users/${aktifKullanici.uid}/envanter/${id}`).remove();
+            } else { btn.disabled = false; btn.innerText = &#34;⭐ Favoriye Ekle&#34;; }
+        }
+
+        async function favoridenCikar(id, driveFileId, esyaStr) {
+            try {
+                const e = JSON.parse(decodeURIComponent(esyaStr));
+                if (driveFileId) {
+                    const base64 = await driveDosyaIndir(driveFileId);
+                    if (base64) inMemoryPhotos[id] = base64;
+                }
+                await gapi.client.request({ path: `/drive/v3/files/${driveFileId}`, method: &#39;DELETE&#39; });
+                delete e.driveImg; delete e.driveFileId;
+                e.tarih = Date.now();
+                db.ref(`users/${aktifKullanici.uid}/envanter/${id}`).set(e);
+                db.ref(`users/${aktifKullanici.uid}/favoriler/${id}`).remove();
+                db.ref(`users/${aktifKullanici.uid}/kitaplik/${id}/driveImg`).set(&#34;&#34;);
+            } catch (e) { console.error(&#34;Silme Hatası:&#34;, e); }
+        }
+
+        function siralamaGetir() {
+            db.ref(&#39;users&#39;).once(&#39;value&#39;, snapshot =&gt; {
+                const liste = document.getElementById(&#39;siralama-listesi&#39;); liste.innerHTML = &#34;&#34;;
+                let oyuncular = [];
+                snapshot.forEach(child =&gt; {
+                    const data = child.val();
+                    if(data.adi) {
+                        let totalDeger = 0;
+                        let favs = data.favoriler || {}; let kols = data.koleksiyon || {};
+                        Object.values(favs).forEach(v =&gt; totalDeger += v.fiyat);
+                        Object.values(kols).forEach(v =&gt; totalDeger += v.fiyat);
+                        oyuncular.push({ uid: child.key, adi: data.adi, servet: totalDeger, favData: favs, kolData: kols });
+                    }
+                });
+                oyuncular.sort((a,b) =&gt; b.servet - a.servet);
+
+                oyuncular.forEach((oyuncu, index) =&gt; {
+                    const madalya = index === 0 ? &#34;🥇&#34; : index === 1 ? &#34;🥈&#34; : index === 2 ? &#34;🥉&#34; : &#34;👤&#34;;
+                    const safeFav = encodeURIComponent(JSON.stringify(oyuncu.favData));
+                    const safeKol = encodeURIComponent(JSON.stringify(oyuncu.kolData));
+                    liste.innerHTML += `
+                        &lt;li class=&#34;oyuncu-karti&#34; onclick=&#34;oyuncuVitrinGoster(&#39;${oyuncu.adi}&#39;, &#39;${safeFav}&#39;, &#39;${safeKol}&#39;)&#34;&gt;
+                            &lt;div class=&#34;esya-sol&#34;&gt;
+                                &lt;span style=&#34;font-size:24px;&#34;&gt;${madalya}&lt;/span&gt;
+                                &lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;${oyuncu.adi}&lt;/strong&gt;&lt;/div&gt;
+                            &lt;/div&gt;
+                            &lt;div class=&#34;esya-sag&#34;&gt;&lt;font&gt;Değer: ${oyuncu.servet} TL&lt;/font&gt;&lt;/div&gt;
+                        &lt;/li&gt;
+                    `;
+                });
+            });
+        }
+
+        function oyuncuVitrinGoster(adi, favStr, kolStr) {
+            const favs = Object.values(JSON.parse(decodeURIComponent(favStr)));
+            const kols = Object.values(JSON.parse(decodeURIComponent(kolStr)));
+            document.getElementById(&#39;modal-oyuncu-baslik&#39;).innerText = `${adi} Vitrini`;
+            
+            let lKol = document.getElementById(&#39;modal-oyuncu-koleksiyon&#39;); lKol.innerHTML = &#34;&#34;;
+            let lFav = document.getElementById(&#39;modal-oyuncu-favori&#39;); lFav.innerHTML = &#34;&#34;;
+            
+            if(kols.length === 0) lKol.innerHTML = &#34;&lt;li style=&#39;color:#777;&#39;&gt;Koleksiyonu boş.&lt;/li&gt;&#34;;
+            else kols.forEach(e =&gt; { lKol.innerHTML += `&lt;li style=&#34;border-left-color:#bb86fc;&#34;&gt;&lt;div class=&#34;esya-sol&#34;&gt;&lt;img src=&#34;${e.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;&lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;${e.urun}&lt;/strong&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;esya-sag&#34;&gt;&lt;strong&gt;${e.fiyat} TL&lt;/strong&gt;&lt;/div&gt;&lt;/li&gt;`; });
+            
+            if(favs.length === 0) lFav.innerHTML = &#34;&lt;li style=&#39;color:#777;&#39;&gt;Favorisi yok.&lt;/li&gt;&#34;;
+            else favs.forEach(e =&gt; { lFav.innerHTML += `&lt;li style=&#34;border-left-color:#ffeb3b;&#34;&gt;&lt;div class=&#34;esya-sol&#34;&gt;&lt;img src=&#34;${e.driveImg}&#34; class=&#34;esya-img&#34; onclick=&#34;gorselBuyut(this.src)&#34; onerror=&#34;this.src=&#39;https://placehold.co/60x60/2c2c2c/ffeb3b?text=Drive&#39;&#34;&gt;&lt;div class=&#34;esya-detay&#34;&gt;&lt;strong&gt;${e.urun}&lt;/strong&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&#34;esya-sag&#34;&gt;&lt;strong&gt;${e.fiyat} TL&lt;/strong&gt;&lt;/div&gt;&lt;/li&gt;`; });
+            
+            modalAc(&#39;modal-oyuncu&#39;);
+        }
+
+        function adminDuyuruYap() {
+            let metin = document.getElementById(&#39;admin-duyuru-input&#39;).value;
+            db.ref(&#39;duyurular/aktif&#39;).set(metin).then(()=&gt;{ alert(&#34;Duyuru yayınlandı!&#34;); modalKapat(&#39;modal-admin&#39;); });
+        }
+        
+        function adminNasilOynanirKaydet() {
+            let metin = document.getElementById(&#39;admin-nasil-oynanir-input&#39;).value;
+            db.ref(&#39;ayarlar/nasilOynanir&#39;).set(metin).then(()=&gt;{ alert(&#34;Nasıl oynanır metni güncellendi!&#34;); });
+        }
+
+        function adminHesapSil() {
+            let isim = document.getElementById(&#39;admin-sil-input&#39;).value.trim();
+            if(!isim) return;
+            if(confirm(`&#34;${isim}&#34; adlı kullanıcının tüm verilerini silmek istediğinize EMIN misiniz?`)) {
+                db.ref(&#39;users&#39;).once(&#39;value&#39;, snap =&gt; {
+                    snap.forEach(child =&gt; {
+                        if(child.val().adi === isim) {
+                            db.ref(`users/${child.key}`).remove();
+                            alert(&#34;Kullanıcı yok edildi.&#34;);
+                            modalKapat(&#39;modal-admin&#39;);
+                        }
+                    });
+                });
+            }
+        }
+        function sekmeDegistir(hedef) {
+            document.querySelectorAll(&#39;.sayfa&#39;).forEach(s =&gt; s.classList.remove(&#39;aktif&#39;));
+            document.querySelectorAll(&#39;.sekme-btn&#39;).forEach(b =&gt; b.classList.remove(&#39;aktif&#39;));
+            document.getElementById(`sayfa-${hedef}`).classList.add(&#39;aktif&#39;);
+            document.getElementById(`sekme-${hedef}`).classList.add(&#39;aktif&#39;);
+            if(hedef === &#39;siralama&#39;) siralamaGetir();
+        }
+    </script>
+  </body>
+</html>
